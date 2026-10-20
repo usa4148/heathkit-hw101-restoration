@@ -19,6 +19,7 @@ toc: true
 | **Heath HW-101 Manual** 595-1277-18 (©1970; late printing, 245 pp. scan) | Supplied by owner; also on Latta's site | **Primary reference.** Page numbers below are the manual's printed numbers. |
 | **HW-101 Service Bulletins** HW-101-1 … -85 (1971–79) | Latta site; -1 to -55 transcribed on the Heath list (Jul 1997) | Factory fixes. Several are already built into this late printing (§11). |
 | HP-23 power supply manual | Latta site | Companion supply. |
+| **PS-23 AC Power Supply manual** 595-2314 (©1979) | Supplied by owner | Supply section checked against it (Rev. 2.1). |
 | W5RKL, *HW-101 and SB-10x Restoration and Troubleshooting* | w5rkl.com | First power-up and checks. |
 | Latta (Frostburg) HW-101 restoration, alignment, HP-23 pages | frostburg.edu | A documented restoration with measured failures. |
 | WB8JKR, *Optimizing the HW-101 / SB-100–102*; K4JPN, KM5Z notes | mikeyancey.com, nostalgickitscentral.com, pestingers.net | Improvements and tube-brand issues. |
@@ -203,12 +204,80 @@ Put each tube back in the socket it came from.
 
 | Item | Original | Failure | Replace with |
 |---|---|---|---|
-| C1–C4 | 125 µF 450 V | Low capacitance | 150 µF 500 V |
+| C1–C4 | 125 µF (500 V per the PS-23 manual) | Low capacitance | 150 µF 500 V |
 | C5 (B+) | 40 µF | Open → CW tone, relay chatter (HW-101-73) | 47 µF 450 V |
 | C6, C7 (bias) | 40 µF 150 V | Open | 47 µF 160 V+ |
 | R1–R5 bleeders | 100 kΩ 2 W | ~150 kΩ | 100 kΩ 2 W metal film |
 | D1–D7 | 1N2071 | Usually OK | 1N4007 |
-| Line cord | 2-wire | Safety | 18/3 grounded |
+| Line cord | 2-wire | Safety | 18/3 grounded (the PS-23 already has a 3-wire cord) |
+
+### 3.6.1 PS-23 supply (checked against the PS-23 manual, 595-2314, ©1979)
+
+The PS-23 is the later (1979) kit supply in the HP-23 family. Page numbers are the PS-23 manual's printed pages.
+
+**How the PS-23 differs from the HP-23/HP-23A:**
+
+- **There is no front-panel B+ switch.** The low-voltage tap is chosen by an internal jumper at assembly: **350 VDC wiring** (Detail 5B, p. 10) or **275 VDC wiring** (Detail 5C, p. 11). On the schematic (illustration booklet p. 4) the brown transformer lead feeds 350 VDC and the brown-yellow lead feeds 275 VDC.
+- **There is no bias control.** The PS-23 gives a fixed **−130 V** with no load (−100 V at 20 mA); bias is set on the transceiver.
+- **A 2.92 A circuit breaker** (65-17) replaces the fuse. Primary current goes through the breaker and through pins 9–10, the AC switch in the equipment (p. 21).
+- A **3-wire grounded line cord** is standard; the green wire goes to chassis lug F (p. 13).
+- The output cable is a captive 8-wire cable with an 11-pin plug. The connector for the far end comes with the equipment (p. 17).
+
+**HW-101: LV tap.** Needs **300 V @ 150 mA**, so the PS-23 must have the **350 VDC wiring** (Detail 5B: brown jumper from strip M lug 2 to capacitor K lug 2). Check that jumper before connecting. The low-tap wiring gives only about 250 V, and the HW-101 chart blames that for relays that stay energized (p. 153).
+
+**Specifications (p. 20):**
+
+| Output | No load | Loaded | Duty |
+|---|---|---|---|
+| HV | 820 V | 700 V @ 250 mA (62.5 µF effective; < 1% ripple) | Continuous to 150 mA; 50% at 300 mA |
+| LV high tap (350 VDC wiring) | 350 V | 300 V @ 150 mA (with 100 mA on HV) | Continuous to 175 mA |
+| LV low tap (275 VDC wiring) | 275 V | 250 V @ 100 mA (with 100 mA on HV) | Continuous to 175 mA |
+| Fixed bias | −130 V | −100 V @ 20 mA | — |
+| Filament | — | 12.6 VAC @ 5.5 A | — |
+| Line | 120/240 VAC, 50/60 Hz, 350 W | | |
+
+**Output pinout (schematic; Table 1, p. 17; Detail 7F, p. 14):**
+
+| Pin | Cable wire | Function |
+|---|---|---|
+| 1 | Green | −130 V fixed bias |
+| 2 | Black | Filament common |
+| 3 | Orange | LV +350 V or +275 V (no load) |
+| 4 | Yellow | HV +820 V (no load) |
+| 6 | Red | 12.6 VAC filament |
+| 7 | White | Ground |
+| 9, 10 | Brown, blue | AC switch loop in the equipment. If the equipment has no AC switching, jumper pins 9–10 at the plug and leave brown and blue unconnected (p. 14). |
+| 5, 8, 11 | — | No connection |
+
+**Recap list, with the PS-23 manual's values (parts list p. 3; schematic; circuit description p. 21):**
+
+| Ref | Manual value | Function | Notes |
+|---|---|---|---|
+| C1, C2 | 125 µF 500 V (25-265 can) | HV voltage doubler | Replace both together; field practice is 150 µF 500 V. |
+| C3, C4 | 125 µF 500 V (25-265 can) | LV half-wave doubler; C4 is also the pi-filter input | Same type of can as C1/C2. |
+| C5 | 40 µF 450 V (25-36) | LV pi-filter output (with choke L1, 6 H) | An open C5 causes a CW tone and relay chatter (HW-101-73). |
+| C6, C7 | 40 µF 150 V (25-20) | Bias filter | **Negative supply: the + lead goes to the ground lug** (p. 12). |
+| R1–R4 | 100 kΩ 2 W | HV bleeders / equalizers across C1, C2 | Drift high (field: ~150 kΩ); metal film 2 W. |
+| R5 | 100 kΩ 2 W | LV bleeder | — |
+| R7 | 1000 Ω 2 W | Bias filter series | Chart: no bias → D7, R7 or R8. |
+| R8 | 27 kΩ 1 W | Bias bleeder | Field practice uprates to 2 W. |
+| D1–D7 | 1N2071 (57-27) | D1–D4 HV doubler (two per leg); D5, D6 LV; D7 bias | 1N4007 is the usual replacement. |
+| L1 | 46-56, 6 H | LV filter choke | Chart: no LV → D5/D6, L1. |
+| Breaker | 2.92 A (65-17) | Primary protection | Opens on reset → transformer, rectifier/filter or load short. |
+
+**Initial test (p. 15).** Use a VTVM or VOM; a solid-state ohmmeter won't turn the diodes on.
+
+- Find the meter polarity on R × 1 (about 10 Ω between strip H lugs 3 and 4). Put the correct lead on ground and switch to R × 10k.
+- Socket readings: **pin 1 ≥ 22 kΩ; pins 3 and 4 ≥ 75 kΩ** (they rise slowly as the caps charge); **pin 7 = 0 Ω**; all others infinite.
+
+**Troubleshooting shortcuts (p. 19):**
+
+- **HV only half the normal value** → D1–D4 or C1/C2.
+- **LV only half** → D5/D6.
+- **All outputs half** → primary wired for 240 V on a 120 V line.
+- **Dead** → breaker, the pins 9–10 loop, or the equipment's switch.
+
+**Caution (p. 17).** The outputs are lethal and the large capacitors hold their charge. The manual allows shorting the cap lugs to chassis with a screwdriver blade. A **bleeder stick (resistor to ground)** is gentler on the caps and terminals. Work with one hand, on an insulating surface.
 
 # 4. Restoration plan
 
@@ -229,7 +298,7 @@ Put each tube back in the socket it came from.
 
 ## 4.2 Phase 1: HP-23 first
 
-Recap per §3.6. Variac bring-up, unloaded, with test loads. Confirm about −130 V bias, **300 V** B+ and about 800 V HV.
+Recap per §3.6. Variac bring-up, unloaded, with test loads. Confirm about −130 V bias, **300 V** B+ and about 800 V HV. On a PS-23, check the 350 VDC wiring and run the socket resistance check (§3.6.1). Unloaded LV reads about 350 V and HV about 820 V.
 
 ## 4.3 Phase 2: Clean
 
@@ -478,6 +547,7 @@ Then compare against the **Receiver DC Voltage Chart (Fig. 1-20)** and **Transmi
 - Heath, *Heathkit Manual for the SSB Transceiver Model HW-101*, 595-1277-18 (©1970).
 - Heath service bulletins HW-101-1 … -85 (Latta site; Heath list, Jul 1997).
 - W5RKL, *HW-101 and SB-10x Restoration and Troubleshooting*.
+- Heath, *Heathkit Manual for the AC Power Supply Model PS-23*, 595-2314 (©1979).
 - Latta, Frostburg State HW-101 pages (restoration, alignment, modifications, HP-23).
 - WB8JKR, *Optimizing the HW-101, SB100-102*; K4JPN, *Improve Your HW-101*; KM5Z refurb summary (pestingers.net).
 - Heath list threads: "Problems with HW-101 — a possible solution" (Dec 2020); "Drifting HW-101" (Jun 2007); "S meter drift" (Feb 2003).
@@ -502,3 +572,4 @@ Then compare against the **Receiver DC Voltage Chart (Fig. 1-20)** and **Transmi
 | Receive benchmark | S9+20 → S6 (W5RKL) | Manual: **≥ S9+20 at 3700 kHz → S3 at 29.2 MHz** |
 | Troubleshooting | Bulletins only | Added manual chart items (D101, C213, V7, R221, CR941, rotors 180°, 250 V B+) and VFO chart |
 | Late-printing features | — | Steel comb brackets, new detents, #47 lamps, FH-1100 modulator diodes already supplied |
+| Supply (Rev. 2.1) | HP-23 field recap; "PS-23: internal 300 V connection" | Added §3.6.1, checked against the **PS-23 manual**: no B+ switch (350/275 VDC set by internal jumper), fixed −130 V bias with no control, 2.92 A breaker, 3-wire cord, full recap table with designators, pinout, initial resistance test, troubleshooting. C1–C4 rating corrected to **500 V**. |
