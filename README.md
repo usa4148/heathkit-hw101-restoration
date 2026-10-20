@@ -2,7 +2,7 @@
 
 A restoration plan for the Heathkit HW-101 HF SSB/CW transceiver (1970–1983) and its HP-23 power supply. It covers which parts fail with age, a phased restoration procedure, alignment and neutralization, a symptom-to-service-bulletin index, and maintenance.
 
-**Status:** Rev. 1 is built from Heath service bulletins and field sources (W5RKL, Latta, WB8JKR, K4JPN, the Heath list). The cross-check against the original Heath manual is pending.
+**Status:** Rev. 2 — checked against the original Heath manual (595-1277-18), with Heath service bulletins and field sources (W5RKL, Latta, WB8JKR, K4JPN, the Heath list). See §11 of the plan for the change log.
 
 ## Files
 

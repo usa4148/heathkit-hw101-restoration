@@ -1,6 +1,6 @@
 ---
 title: "Heathkit HW-101 Transceiver — Restoration Plan"
-subtitle: "Rev. 1 — field sources, Heath service bulletins, W5RKL and Latta notes (manual cross-check pending)"
+subtitle: "Rev. 2 — checked against the original Heath manual (595-1277-18)"
 date: "October 2026"
 geometry: margin=0.9in
 fontsize: 10pt
@@ -10,366 +10,495 @@ toc: true
 
 <!-- Build: pandoc hw101-restoration-plan.md -o hw101-restoration-plan.pdf --pdf-engine=xelatex -V mainfont="DejaVu Serif" -->
 
-> **Safety.** The HW-101 runs on **~700–800 V DC** plate supply from the HP-23 power supply. That voltage stays on the filter capacitors after the supply is unplugged. Discharge with a grounded bleeder stick before every hands-in session, and never operate the final cage with its cover off. Work one-handed when the set is live.
+> **Safety.** The HW-101 runs on **+700–850 V DC** from the HP-23 power supply (manual spec, p. 159). That voltage stays on the filter capacitors after the supply is unplugged. The manual (p. 117) says to connect **a lead from a good earth ground to the chassis GND terminal and to all test equipment** before power-up, and warns that lethal voltages are present above and below the chassis. Discharge before every hands-in session, and never operate the final cage with its cover off. Work one-handed when the set is live.
 
 # 1. Source documents
 
 | Document | Where | Use |
 |---|---|---|
-| **Heath HW-101 Assembly & Operation manual** (245 pp.) | Bill Latta's HW-101 site, frostburg.edu | Primary reference: parts lists, voltage charts, alignment, schematic. *Scan only; cross-check pending (§11).* |
-| **HW-101 Service Bulletins**, HW-101-1 … -85 (1971–79) | Latta site; text of -1 to -55 on the Heath list (Jul 1997) | Factory fixes. The bulletin numbers below come from these. |
-| **HP-23 power supply manual** | Latta site | Required companion supply. |
-| **W5RKL**, *Heathkit HW-101 and SB-10x Restoration and Troubleshooting* | w5rkl.com | First power-up checklist, bias/neutralizing, alignment checks. |
-| **Latta (Frostburg) HW-101 restoration, alignment, HP-23 restoration pages** | frostburg.edu | Documented restoration with measured failures. |
-| **WB8JKR**, *Optimizing the HW-101 / SB-100–102* | mikeyancey.com | Meter-zero, carrier-crystal, receive/transmit improvements. |
-| **K4JPN**, *Improve Your HW-101*; **KM5Z** refurb notes | nostalgickitscentral.com, pestingers.net | Tube-brand problems, T/R relay, pilot lamps. |
-| Heath list archive / Heathkit-Radios (groups.io) | puck.nether.net, groups.io | Field experience. |
+| **Heath HW-101 Manual** 595-1277-18 (©1970; late printing, 245 pp. scan) | Supplied by owner; also on Latta's site | **Primary reference.** Page numbers below are the manual's printed numbers. |
+| **HW-101 Service Bulletins** HW-101-1 … -85 (1971–79) | Latta site; -1 to -55 transcribed on the Heath list (Jul 1997) | Factory fixes. Several are already built into this late printing (§11). |
+| HP-23 power supply manual | Latta site | Companion supply. |
+| W5RKL, *HW-101 and SB-10x Restoration and Troubleshooting* | w5rkl.com | First power-up and checks. |
+| Latta (Frostburg) HW-101 restoration, alignment, HP-23 pages | frostburg.edu | A documented restoration with measured failures. |
+| WB8JKR, *Optimizing the HW-101 / SB-100–102*; K4JPN, KM5Z notes | mikeyancey.com, nostalgickitscentral.com, pestingers.net | Improvements and tube-brand issues. |
+| Heath list / Heathkit-Radios (groups.io) | puck.nether.net, groups.io | Field experience. |
+
+**Numbering (schematic notes):** 1–99 modulator board; 100s IF; 200s bandpass; 300s audio; 400s RF driver; 500s crystal; 600s heterodyne oscillator; 700s driver grid; 800s driver plate; 900s chassis. Resistors are 1/2 W unless marked. Manual voltages were measured with an 11 MΩ VTVM: ±10% (p. 144), ±20% on the transmitter chart.
 
 # 2. Transceiver at a glance
 
-## 2.1 Key facts
+## 2.1 Factory specifications (pp. 157–160)
 
-| Item | Value |
+| Item | Spec |
 |---|---|
-| Built | 1970–1983; 30,000–40,000 kits. Nearly identical to the SB-102. |
-| Bands | 80, 40, 20, 15, 10 m (eight 500 kHz segments, 3.5–29.5 MHz) |
-| Modes | SSB (USB/LSB), CW |
-| IF | 3395 kHz; 1st conversion 8.395–8.895 MHz bandpass (T202) |
-| Filters | 2.1 kHz SSB (supplied); optional 400 Hz CW, front-panel switched |
-| Power | 180 W PEP input SSB, 170 W CW; about 100 W out (80 W on 10 m) |
-| VFO | Solid-state: **MPF-105 FET** oscillator, **2N3393** (Q942) regulator, V20 6AU6 buffer |
-| Supply | External **HP-23** (A/B/C) or PS-23 (AC), HP-13 (mobile) |
-| Pilot lamps | **#47** (part of the 12.6 V filament string balance; bulletin HW-101-20) |
+| Coverage | 3.5–4.0, **7.0–7.3**, 14.0–14.5, 21.0–21.5, 28.0–30.0 MHz (four 10 m segments) |
+| Sensitivity | **< 0.3 µV** for 10 dB (S+N)/N, SSB |
+| Selectivity | SSB 2.1 kHz @ −6 dB, 7 kHz @ −60 dB (3.395 MHz filter). Optional SBA-301-2 CW: 400 Hz / 2.0 kHz. |
+| Receiver audio | 2 W at < 10% distortion |
+| Transmitter input | 180 W PEP SSB; 170 W CW (50% duty) |
+| Output | **100 W on 80–15 m; 80 W on 10 m** into 50 Ω |
+| Suppression | Carrier and unwanted sideband −45 dB; 3rd-order IMD −30 dB; harmonics −40 dB |
+| Stability | < 100 Hz/hr **after 45 min warm-up**; < 100 Hz for ±10% line |
+| Dial | 5 kHz divisions; 35⅓ knob turns per 500 kHz |
+| Complement | **20 tubes, 19 semiconductors** (p. 3); MPF-105 FET VFO, 2N3393 regulator |
+| **Power requirements** | **700–850 V @ 250 mA (1% ripple); 300 V @ 150 mA; −115 V @ 10 mA; 12 V AC/DC @ 4.76 A** |
+| Pilot lamps | **#47** (412-1), ×2 (parts list p. 45) |
+| Weight / size | 17½ lb; 14-13/16 × 6-5/16 × 13-3/8 in. |
 
-## 2.2 Tube complement
-
-The V numbers below are assembled from the field sources and bulletins. **Verify them against the manual's tube chart before ordering.**
+## 2.2 Tube complement (spec p. 159; V numbers from schematic, block diagram and troubleshooting chart)
 
 | V | Tube | Function | Known issues (source) |
 |----|----------|--------------------|----------------------------------------------|
-| V1 | 6EA8 | Speech amp / cathode follower | GE 6EA8s oscillate (~65 kHz) → VOX chatter, no carrier null (HW-101-21, -31). 6GH8A/6CQ8 are used as substitutes. |
-| V2 | 6AU6 | Carrier isolation amp | — |
-| V3 | 6AU6 | 1st IF amp | Leakage → S-meter drift (HW-101-34). El-Menco brand draws excess current → can't zero meter. |
-| V4 | 6AU6 | 2nd IF amp | Brand-sensitive: GE / IEC OK; some Sylvania/RCA/Westinghouse didn't work (HW-101-46). |
-| V5 | 6EA8 | 1st transmit mixer | Check seating. |
-| V6 | 6CB6 | 2nd transmit mixer | Under shield; shield contact matters. |
-| V7 | 6CL6 | Driver | Under shield. |
-| V8, V9 | **6146A / 6146B** | Finals (class AB1) | 1978: Heath said use 6146A only (HW-101-18, -39). 1979: GE 6146B approved (HW-101-49). **Re-neutralize after any change.** |
-| V10 | 6HS6 | Receiver RF amp | **High failure rate.** Leakage or shorts → poor AGC, fast S-meter decay, lost sensitivity, "static" on S-meter (HW-101-24). Run at or above ratings. A 6AU6 is a drop-in substitute. |
-| V11 | 6HS6 | 1st receive mixer | Same as V10. Some 6HS6s had swapped pinouts (HW-101-12). |
-| V12 | 6EA8 | 2nd receive mixer / relay amp | Defective (IEC) tubes hold relays in after TX (HW-101-23); El-Menco may oscillate (HW-101-17). |
-| V13 | 6BN8 | Product detector / AVC | Weak 6BN8s found on test. |
-| V14 | 6GW8 | Audio amp / output | Runs hot. |
-| V15 | 6EA8 | CW sidetone osc / amp | Shorts → sidetone problems or continuous keying (HW-101-74). A tube shield cures bleed-through. |
-| V16 | 12AU7 | Carrier (sideband) oscillator | Plate resistors R6/R7 drift (§3.2). |
-| V17 | 12AT7 | VOX amp / 100 kHz calibrator | — |
-| V18 | 0A2 | 150 V regulator (VFO) | Flicker on CW points to an HP-23 on the 250 V tap or a bad C5. |
-| V19 | 12AT7 | Heterodyne osc / cathode follower | Repeated failure: change R212 (HW-101-2). |
-| V20 | 6AU6 | VFO buffer amp | Feeds the FET's ~8 V regulator; a poor tube → drift. El-Menco → CW chirp. |
+| V1 | 6EA8 | Speech amp (A) / cathode follower (B) | GE 6EA8s oscillate (~65 kHz) → VOX chatter, no carrier null (HW-101-21, -31). Manual: "very low output in USB/LSB → V1 defective" (p. 152 #33). |
+| V2 | 6AU6 | Isolation amplifier | — |
+| V3 | 6AU6 | 1st IF amp (TX and RX) | Leakage → S-meter drift (HW-101-34). El-Menco draws excess current → can't zero. |
+| V4 | 6AU6 | 2nd IF amp | Brand-sensitive (HW-101-46). |
+| V5 | 6EA8 | 1st transmit mixer (V5A) | Needs VFO injection (p. 152 #34). |
+| V6 | 6CB6 | 2nd transmit mixer | Under shield. |
+| V7 | 6CL6 | Driver | **Weak V7 → transmit output falls off** (p. 153 #42). |
+| V8, V9 | **6146** (411-75) | Finals | Gassy 6146s → output falls off (p. 153 #42). Heath: 6146A only (HW-101-18, -39), later GE 6146B approved (HW-101-49). **Re-neutralize after any change.** |
+| V10 | 6HS6 | RF amplifier | **High failure.** Leakage → poor AGC (HW-101-24). A 6AU6 substitutes directly. |
+| V11 | 6HS6 | 1st receive mixer | Same as V10; some 6HS6s had swapped pinouts (HW-101-12). |
+| V12 | 6EA8 | 2nd receive mixer (A) / relay amp (B) | Defective V12 → relays stay energized (p. 153 #39; HW-101-23); relays won't pull in TUNE (V12B, p. 152 #37). |
+| V13 | 6BN8 | Product detector (C) / AVC | Latta found a weak one. |
+| V14 | 6GW8 | Audio amp (A) / audio power (B) | Runs hot. |
+| V15 | 6EA8 | CW tone oscillator / amplifier | Shorts → sidetone faults, continuous keying (HW-101-74). |
+| V16 | 12AU7 | Carrier oscillator / BFO | Plate resistors R6/R7 drift (§3.2). |
+| V17 | 12AT7 | VOX amp (A) / 100 kHz calibrator (B) | — |
+| V18 | 0A2 | 150 V regulator | Fed through 7 W resistors R304/R305 (§3.2). |
+| V19 | 12AT7 | Heterodyne osc (A) / cathode follower (B) | Repeated failure: R212 220 → 330 Ω (HW-101-2). |
+| V20 | 6AU6 | VFO amplifier | **"Output low" → V20 weak** (VFO chart, p. 155). Its cathode feeds the FET's regulated supply → drift. |
 
 **Brand note (K4JPN, W5RKL):** El-Menco 6AU6, 6HS6, 6EA8, 12AT7, 12AU7 and 6CL6 tubes are repeatedly implicated. Keep spares of other brands.
 
-## 2.3 Semiconductors
+## 2.3 Semiconductors (schematic diode/transistor tables; parts lists)
 
-The HW-101 has 6 germanium diodes, 9 silicon diodes, 1 zener, the MPF-105 FET and the 2N3393. Named in the bulletins:
+| Designators | Type | Heath p/n | Use |
+|---|---|---|---|
+| D1, D2, D101, D201, D301, D902–D906 | 1N2071 (1 A, 600 PRV) | 57-27 | Switching, ALC rectifiers, anti-trip rectifiers, DC blocking |
+| D901 | 1N4149 | 56-56 | — |
+| **CR1–CR4** | **FH-1100 hot-carrier** in this printing (1970 schematic table: 1N191) | 56-87 | Balanced modulator (HW-101-13 upgrade) |
+| CR201, CR901, CR941 | 1N191 germanium | 56-26 | Calibrator harmonic generator, RF sampling, VFO shifter |
+| D202 | 15 V zener (1N4166A) | 56-25 | Cathode bias |
+| Q941 | MPF-105 FET | 417-169 | VFO oscillator |
+| Q942 | 2N3393 | 417-118 | Voltage regulator (VFO supply) |
 
-- **CR1–CR4** (modulator): germanium; bulletin HW-101-13 upgraded them to hot-carrier diodes (56-87).
-- **CR201** (calibrator), **CR901** (relative power), **CR941**: germanium 1N191-type (56-26).
-- **D201**: VOX. Leakage here kills VOX sensitivity (HW-101-6).
-- **D907**: orientation affects 15/10 m receive sensitivity (HW-101-11).
+Diode faults named in the manual:
+
+- **D101 → slow receive recovery** (p. 153 #41).
+- **D201 wrong type or backwards, D202 backwards or defective → no VOX** (p. 152 #38).
+- **CR941 reversed → VFO shifter dead** (p. 155).
+- **Q941/Q942 wired wrong → no VFO output** (p. 155).
+- Bulletin HW-101-11's "D907" does not appear in this manual's diode table; check which diode it refers to on your unit.
 
 # 3. What fails, ranked
 
 ## 3.1 Capacitors
 
-**Electrolytics in the transceiver** (Latta's measured list; W5RKL gives 450 V/50 V ratings for the SB versions):
+**All five electrolytics** (parts lists pp. 12, 20, 24, 44; schematic):
 
-| Ref | Value | Role | Replace with |
+| Ref | Value (p/n) | Board / role | Replace with |
 |---|---|---|---|
-| C2 | 10 µF 15 V | Speech amp cathode bypass (modulator board) | 10 µF 50 V |
-| C12 | 20 µF 350 V | Speech amp B+ decoupling | 22 µF 450 V |
-| C212 | 10 µF 15 V | VOX amp cathode bypass (bandpass board) | 10 µF 50 V |
-| C304 | 20 µF 350 V | Audio output B+ decoupling (audio board) | 22 µF 450 V |
-| C906 | 10 µF 150 V | Bias filter | 10 µF 250 V; **negative supply, so check polarity** |
+| C2 | 10 µF (25-115) | Modulator; V1A speech amp cathode bypass | 10 µF 50 V |
+| C12 | 20 µF (25-135) | Modulator; speech amp B+ decoupling (+300 V line via R14 4.7 kΩ) | 22 µF 450 V |
+| C212 | 10 µF (25-115) | Bandpass; VOX amp cathode bypass | 10 µF 50 V |
+| C304 | 20 µF (25-135) | Audio; audio-stage B+ decoupling | 22 µF 450 V |
+| C906 | 10 µF (25-147) | Chassis; **bias filter on the −130 V line (positive lead to ground)** | 10 µF 250 V, **polarity reversed vs. B+ caps** |
 
-Keep the same capacitance in audio and speech circuits so the frequency response doesn't change. A higher voltage rating is fine. The main filter capacitors are in the HP-23 (§3.6).
+The manual does not print voltage ratings. The ratings above come from the circuit voltages (+300 V B+, −130 V bias). Keep audio and speech capacitances the same.
 
 | Other capacitor | Likelihood | Symptom | Action |
 |---|---|---|---|
-| C946 (4700 pF, VFO) | Medium | Warble when tapped | Glue its top to the VFO wall (HW-101-42). |
-| C947 (56 pF, VFO shift) | Medium | Intermittent USB/LSB shift | 47 pF NPO (HW-101-19). |
-| C213 (.2 µF, VOX delay) | Medium | Short VOX hold, VOX trouble | Leakage-test; .47 µF (HW-101-63). |
-| C701, C801 (680 pF 300 V) | Medium | R940 overheats | 680 pF 500 V (HW-101-75). |
-| Silver micas in carrier/BFO (C17 etc.) | Low–medium | Weak or uneven carrier | Test; WB8JKR changes C17 from 12 pF to 100 pF. |
-| Ceramic discs | Low | — | Spot-test bypasses. |
+| **C213** (VOX delay) | Medium | **Relays stay energized** (p. 153 #39C); VOX delay drift | Leakage-test; .47 µF per HW-101-63. |
+| C946 (4700 pF, VFO) | Medium | Warble when tapped | Glue to the VFO wall (HW-101-42). Manual: separate the two **56 pF discs** by > 1/8 in. to cure VFO microphonics (p. 155). |
+| C947 (VFO shift) | Medium | Intermittent shift | 56 → 47 pF NPO (HW-101-19). |
+| C208, C223, C604 | Low–medium | No heterodyne injection (p. 152 #36) | Check value. |
+| .005 µF 1.6 kV discs (×2, chassis) | Medium | HV bypass short | Replace with 2 kV+ parts. |
+| .2 µF Mylars (27-34; modulator ×3, IF, bandpass, chassis ×2) | Medium | Leakage | Replace with film. |
+| C701, C801 (680 pF) | Medium | R940 overheats | 680 pF 500 V (HW-101-75). |
+| Ceramic discs, micas | Low | — | Spot-test. |
 
 ## 3.2 Resistors
 
-These are 1/2–2 W carbon composition parts, ~50 years old. They drift high, worst where they run hot.
+These are 1/2–7 W carbon composition and wirewound parts, ~50 years old. Carbon comps drift high, worst where they run hot.
 
-| Ref | Value | Failure / symptom | Fix (source) |
+| Ref | Manual value | Failure / symptom | Fix (source) |
 |---|---|---|---|
-| **R106** | 22 kΩ 1 W (IF board) | Heats and changes → **S-meter zero drift** | 22 kΩ 2 W wirewound (WB8JKR); K4JPN uses 33 kΩ 2 W. Four other connections share its pad, so keep them all. |
-| **R107** | 100 kΩ 1/2 W | S-meter drift with heat | 100 kΩ 1 W (HW-101-10). |
-| **R6, R7** | 33 kΩ (carrier osc V16 plates) | One measured **330 kΩ**, another 42 kΩ → low USB/CW gain and output | Replace with 1 W (HW-101-84); WB8JKR uses 27 kΩ to raise carrier level. |
-| **R1** | 100 kΩ (speech amp) | Heat damage | 1 W (HW-101-84); also check R215 100 kΩ and R316 22 kΩ. |
-| **R117** | 3.3 kΩ (AVC) | Open → AVC and S-meter decay too fast | Replace; route the AVC wire ends away from it (HW-101-55). |
-| **R915** | 3.3 MΩ | Open → no USB/LSB output (TUNE OK), ALC upset | Replace (HW-101-69). |
-| **R940, R904** | 100 Ω | Overheat or short to the driver shield | Sleeve the leads, dress away from the shield (HW-101-37, -50). |
-| **R701** | 1 kΩ (driver grid switch board) | Burned, from a bandswitch lug shorting to the shield cover | Replace and bend the lug clear (W5RKL). |
-| **R212** | 220 Ω | Repeated heterodyne-oscillator tube failure | 330 Ω 1/2 W (HW-101-2). |
-| R945, R947 | VFO | Low VCO output; VFO stops at the high end | Per HW-101-52, -80 (§4.6). |
-| **R202** | 10 kΩ | *Early units only.* Limits drive to V5 | Jumper it (HW-101-14). Latta shunted it with wire to keep the early-run marker. |
-| 10 kΩ plate-supply resistors (driver / audio) | — | Drift high → low output or weak audio | Measure and replace. |
+| **R106** | **22 kΩ 1 W** (1-5-1, IF board; 1 W already in this printing) | Heats and changes → S-meter zero drift | 22 kΩ 2 W wirewound (WB8JKR) or 33 kΩ 2 W (K4JPN). Keep all four connections on its pad. |
+| **R107** | **100 kΩ 1 W** (1-28-1; HW-101-10 already incorporated) | S-meter drift | Check that it is the 1 W part. |
+| **R6, R7** | **33 kΩ 1/2 W** (6-333; V16 plates) | Latta measured **330 kΩ** and 42 kΩ → low USB/CW gain | 33 kΩ 1 W (HW-101-84); WB8JKR uses 27 kΩ. |
+| **R1** | 100 kΩ (V1A plate) | Heat damage | 1 W (HW-101-84); also check R215 and R316. |
+| **R302** | **3.3 kΩ 1 W** (bias series, −130 V → bias line) | Drift → wrong bias range | Measure; replace with 2 W metal film. |
+| **R304, R305** | **1 kΩ 7 W, 2.5 kΩ 7 W** (0A2 / 150 V dropping) | Hot wirewounds; open → no 150 V (VFO, heterodyne oscillator) | Measure; check the surrounding board for heat damage. |
+| R117 | 3.3 kΩ (AVC) | Open → AVC and S-meter decay too fast | Replace (HW-101-55). |
+| R915 | 3.3 MΩ | Open → no SSB output, TUNE OK | Replace (HW-101-69). |
+| R940, R904, R701 | 100 Ω / 1 kΩ | Overheat or short to the driver shield | Sleeve and dress (HW-101-37, -50; W5RKL). |
+| R212 | 220 Ω | Repeated heterodyne-oscillator tube failure | 330 Ω (HW-101-2). |
+| **R306, R307** | (VFO shift network) | **VFO doesn't shift with the Mode switch** (p. 152 #35) | Check value. |
+| R221 | — | Not soldered at bandpass point F → **VFO output high** (p. 155) | Resolder. |
+| R202 | 10 kΩ | *Early units only.* Limits drive | Jumper it (HW-101-14). |
+| 2.2 Ω 2 W (chassis) | — | — | Check. |
 
-Method: lift one lead, measure, and replace parts more than 10–20% out of tolerance. Use carbon comp or carbon film in RF and oscillator circuits.
+Method: lift one lead, measure, and replace parts more than 10–20% out. Use carbon comp or carbon film in RF and oscillator circuits.
 
 ## 3.3 Tubes, by risk
 
 1. **6HS6 (V10, V11):** the top HW-101 receive killer. Try a 6AU6 as a test substitute.
-2. **6146 finals (V8, V9):** emission, gas, mismatched pairs. Only service in the set proves a final.
-3. **6EA8 (V1, V12, V15):** oscillation, relay hang-up, sidetone faults.
-4. **6AU6 (V3, V4, V20):** brand-sensitive; S-meter zero and chirp problems.
-5. **12AT7 (V19), 12AU7 (V16), 6BN8 (V13), 6GW8 (V14), 0A2 (V18).**
+2. **6146 pair (V8, V9):** gas or emission ("output falls off", p. 153).
+3. **6CL6 driver (V7):** weak → falling output.
+4. **6EA8 (V1, V5, V12, V15):** oscillation, relay hang, sidetone.
+5. **6AU6 (V3, V4, V20):** brand-sensitive; V20 weak → low VFO output.
+6. **12AT7 (V17, V19), 12AU7 (V16), 6BN8, 6GW8, 0A2.**
 
-Put each tube back in the socket it came from. Alignment is tube-dependent.
+Put each tube back in the socket it came from.
 
 ## 3.4 Mechanical, switches, relays
 
 | Item | Symptom | Fix (source) |
 |---|---|---|
-| **RL2 contacts (carbon)** | Chirp, slow receive recovery, no audio after TX. +300 V can leak onto the bias/AGC lines. | Clean contacts 2 and 10 with typing paper; clean carbon from the relay base (HW-101-32). Covers pull straight up. |
-| RL1 / RL2 general | Chatter, sticking | Card-strip cleaning; VOX chatter bulletins -31, -41, -57. |
-| **Bandswitch wafers** | Dead or partial bands | DeoxIT and rock-test. **Check wafer notch orientation.** One list unit had 3 of 5 wafers reversed from the original build. |
-| L904 → bandswitch wires (5) | Short if run without a load | Sleeve or replace (K4JPN). |
-| **SSB/CW filter slide switch** (by RF gain) | Low TX output **and** low RX sensitivity | Clean (HW-101-53). |
-| Rotary switch detents | Broken detent | Newer detent 266-1116 (HW-101-66, -71). |
-| **Driver preselector / load rubber belts** | Preselector won't track, slips | Silicone belts, 50 mm ID / 56 mm OD / 3 mm. Same belt for SB-100/101/102 and HW-100/101. |
-| Preselector tuning drums | Loose on the shaft | Grind off the old solder, epoxy-bond (Latta). |
-| Preselector caps (26-122) | Stiff; corroded pins | Clean or tin the pins; replace if they bind (HW-101-29, -81). |
-| Loading cap turns with plate | — | Grommet 73-3 or fiber washer on the shaft (HW-101-30, -64). |
-| **VFO vernier / stop stud** | Erratic VFO | Braid from the stop stud to a frame lug (HW-101-27). |
-| VFO tune slips | — | Nylon and spring washers behind the loading pulley (HW-101-78). |
-| VFO spiral and follower | Stiff dial | Clean the groove, silicone-lube, oil the pawls; regrease the capacitor if stiff (W5RKL). |
-| Coil covers | Can't reach driver/het coils | Enlarge holes with a Dremel #194 bit (Latta). |
-| RF driver board screws / lockwashers | Self-oscillation | Tighten and fit lockwashers (HW-101-9). |
-| Carrier null pot (10-147) | Fails, noisy | Fiber washer and ground wire (HW-101-3); or a 200 Ω trimpot (KM5Z). |
-| Pilot lamps | Low output, S-meter drift | **#47**, never #44; never run with a lamp out (HW-101-20). |
+| **RL2 contacts (carbon)** | Chirp, slow recovery | Clean contacts 2 and 10; clean the relay base (HW-101-32). |
+| RL1/RL2 | Won't energize | V12B, relay or Mode wafer 2F (p. 152 #37). |
+| **Band/crystal switch wafers** | Dead bands; no heterodyne injection | Manual: **"rotors reversed 180°" on the crystal or heterodyne-oscillator switch wafers** (p. 152 #36). A field unit had 3 of 5 wafers reversed. |
+| **Modulator and RF driver board hardware** | **Transmitter unstable** | Tighten; **fit the lockwashers between the boards and chassis** (p. 153 #40B; HW-101-9). Also coil shield cover, tube-shield clips, and V8/V9 socket hardware (p. 153 #40). |
+| SSB/CW filter slide switch | Low TX and RX | Clean (HW-101-53). |
+| Driver preselector/load belts | Slip, won't track | Silicone 50/56/3 mm. |
+| Preselector drums | Loose | Epoxy (Latta). |
+| VFO / Jackson drive | Erratic, slips | Braid from the stop stud to the frame (HW-101-27); washers (HW-101-78). The VFO and dial come out as a unit (p. 154). |
+| Comb brackets / detents | — | This printing already ships **steel comb brackets 204-2096** and **detents 266-1116**. Earlier units may need retrofitting (HW-101-8, -66). |
+| Pilot lamps | Low output, S-meter drift | **#47 only** (manual p. 45; HW-101-20). |
 
 ## 3.5 Calibrator and crystals
 
-- **Y201 100 kHz crystal:** a choppy output causes spurs and raised noise, and can trip anti-VOX so the rig sits in transmit (HW-101-25; Latta). Replace (404-43).
-- **Band crystals** are band frequency + 8.895 MHz; for example 29.5 MHz uses 38.395 MHz. They're shared with the SB-102. Latta's 29.5 MHz crystal was dead.
-- **Carrier crystals** have wide tolerance. WB8JKR measured LSB 3393.8, USB 3395.9 and CW 3395.17 kHz, and pulled them back to 1.4–1.6 kHz either side of the filter center. CW output went from 50 W to 110 W.
+- **Supplied heterodyne crystals** (Y501–Y508) cover only the specified segments. Heath warns against other heterodyne crystals, because the driver coils are sequence-tuned in series-parallel (p. 120). A dead crystal gives no injection on that band (p. 152 #36B).
+- **"Birdies" near 3740 kHz and 21,200 kHz are normal** (p. 120).
+- Carrier crystals (modulator board): **3393.6, 3396.4, 3395.4 kHz** (404-205/-206/-215; p. 12). WB8JKR retrimmed drifted crystals: CW output went from 50 W to 110 W.
+- Y201 100 kHz calibrator crystal: a choppy output causes spurs and noise, and can latch the rig in transmit through anti-VOX (HW-101-25; Latta).
 
 ## 3.6 HP-23 power supply (do this first)
 
-| Item | Original | Failure | Replace with |
-|---|---|---|---|
-| C1, C2 (HV, in series) | 125 µF 450 V | Low capacitance (Latta) | 150 µF 500 V |
-| C3, C4 (B+) | 125 µF | Aging | 150 µF 500 V |
-| **C5** (B+ filter) | 40 µF 450 V | **Open → tone on CW, relay chatter** (HW-101-73) | 47 µF 450 V |
-| C6, C7 (bias) | 40 µF 150 V | **Both open** (Latta) | 47 µF 160 V+ |
-| R1–R5 (HV bleeders) | 100 kΩ 2 W | Measured ~150 kΩ | 100 kΩ 2 W metal film |
-| R7 / R8 (bias) | 1 kΩ / 27 kΩ | Drift; R8 was 1 W | 2 W metal film |
-| D1–D7 | 1N2071 | Usually OK | 1N4007 |
-| Line cord | 2-wire | Safety | 18/3 grounded |
+**Manual (p. 114):**
 
-**Outputs (11-pin):**
+- Set the **HP-23A's low-voltage switch to 300 V DC**. On the HP-23B, HP-23C and PS-23, make the internal connections for 300 V.
+- **With the HW-101, the HP-23's own BIAS control is inoperative**; bias is set by the transceiver's BIAS control.
+- With an **HP-13**, set the supply's bias control **fully clockwise** (p. 113).
+- **Troubleshooting chart:** "relays stay energized → low B+, at 250 V instead of 300 V" (p. 153 #39E).
 
-| Pin | Output |
+**11-pin plug (Fig. 1-6):**
+
+| Pin | Function |
 |---|---|
 | 1 | −130 V bias |
-| 2, 6 | 12.6 VAC filaments |
-| 3 | B+ 250/300 V |
-| 4 | HV ≈ 700 V loaded (~800 V unloaded) |
-| 7 | Ground |
-| 9–10 | Power-switch loop |
+| 2 | Filament common |
+| 3 | LV +300 V |
+| 4 | HV +800 V |
+| 5 | Ground (relay) |
+| 6 | 12.6 V filament |
+| 7 | Ground (B− and bias) |
+| 8 | No connection |
+| 9–10 | Power switch |
+| 11 | Relay N.O. (linear amplifier) |
 
-**The B+ switch must be on 300 V for the HW-101.** On 250 V you get low TX power, VOX trouble and V18 flicker on CW. The older 250/OFF/300 switch is easy to bump.
+**Typical recap (Latta, field):**
 
-Restored-board kits (for example HP-23RL) replace most of these parts in one step.
+| Item | Original | Failure | Replace with |
+|---|---|---|---|
+| C1–C4 | 125 µF 450 V | Low capacitance | 150 µF 500 V |
+| C5 (B+) | 40 µF | Open → CW tone, relay chatter (HW-101-73) | 47 µF 450 V |
+| C6, C7 (bias) | 40 µF 150 V | Open | 47 µF 160 V+ |
+| R1–R5 bleeders | 100 kΩ 2 W | ~150 kΩ | 100 kΩ 2 W metal film |
+| D1–D7 | 1N2071 | Usually OK | 1N4007 |
+| Line cord | 2-wire | Safety | 18/3 grounded |
 
 # 4. Restoration plan
 
 ## 4.1 Phase 0: Assess cold
 
-- Photograph everything. Note mods such as RIT added to V20, R202 present or jumpered, BNC/SO-239 output and non-stock tubes.
-- Pull and label every tube by socket. Test them, and note the brands (El-Menco, GE 6EA8, IEC).
-- **Check bandswitch wafer orientation** against the manual's pictorials.
-- Inspect: R940/R701/R904 (scorching), the final cage, the RF choke (fragile wire), L904 wires, RL1/RL2 bases, belts and drums.
-- Resistance-check the HW-101 B+, HV and bias lines to chassis, using the manual's chart, before connecting a supply.
+- Photograph everything; note mods (RIT on V20, R202 present or jumpered, output connector changes, non-stock tubes).
+- Pull and label every tube; test them; note brands.
+- **Check switch-wafer rotor orientation**, especially the crystal and heterodyne-oscillator wafers.
+- Inspect R304/R305 (7 W), R940/R701/R904, the final cage and RF choke, RL1/RL2, belts and drums.
+- Check the receiver against the **resistance chart, Fig. 1-22** (fold-out from p. 155), with the power plug disconnected and all controls fully CCW. Sample values from the chart:
+
+| Point | Expected |
+|---|---|
+| V8/V9 plate | ~95 kΩ |
+| V18 | 34 kΩ |
+| V19 | 38 kΩ / 9 kΩ |
+| V17 pin | 0 Ω with FUNCTION in CAL |
 
 ## 4.2 Phase 1: HP-23 first
 
-Recap the HP-23 as in §3.6. Bring it up on a variac at 10 → 25 → 50 → 75 → 100%, unloaded, with a dummy load resistor on each output. Confirm about −130 V bias, 300 V B+ (switch!) and about 800 V HV unloaded. Check its primary (plug, fuse, switch) with an ohmmeter first.
+Recap per §3.6. Variac bring-up, unloaded, with test loads. Confirm about −130 V bias, **300 V** B+ and about 800 V HV.
 
 ## 4.3 Phase 2: Clean
 
-- Vacuum and brush; gentle compressed air.
-- Use cleaner on a rag or swab, never sprayed directly. Test naphtha on a hidden spot first.
-- Final cage: finals out; pipe-cleaner between the tuning-cap plates.
-- Front panel and windows: mild cleaner only; plastic dulls easily.
-- DeoxIT on every rotary switch (including the bandswitch), pot and the SSB/CW slide switch.
+- Vacuum and brush; cleaner on a rag or swab, never sprayed.
+- Final cage: pipe-cleaner between the tuning-cap plates.
+- DeoxIT every rotary switch, pot and slide switch (Function, Meter, SSB/CW filter).
 
-## 4.4 Phase 3: Transceiver recap and resistor survey
+## 4.4 Phase 3: Recap and resistor survey
 
-1. Replace C2, C12, C212, C304 and C906 (C906 negative polarity).
-2. Replace the drift-prone resistors in §3.2: R106 (2 W), R107 (1 W), R6/R7 (1 W), R1 (1 W). Check R117, R915, R212, R940, R701 and R904.
-3. Lift-and-measure survey of the remaining resistors, worst-heat areas first (audio, VFO buffer, driver, modulator).
-4. Clean RL2 contacts and base, and RL1.
-5. Fit #47 pilot lamps.
+1. Replace C2, C12, C212, C304 and C906 (C906 reversed polarity).
+2. Replace the .005 µF 1.6 kV HV discs and the leaky Mylars.
+3. Resistors per §3.2: R106 (2 W), R6/R7 (1 W), R1 (1 W), R302; check R304/R305, R117, R915, R212, R306/R307.
+4. Clean RL2/RL1.
+5. Fit #47 lamps.
 
 ## 4.5 Phase 4: Mechanical
 
-Fit silicone preselector/load belts, epoxy loose drums, ground the VFO stop stud, glue C946, and enlarge coil-cover holes if needed.
+Fit silicone belts, epoxy the drums, braid the VFO stop stud, glue C946 and separate the 56 pF discs. Tighten the board hardware **with lockwashers**.
 
-## 4.6 Phase 5: VFO
+## 4.6 Phase 5: VFO (pp. 154–155)
 
-The VFO is solid-state with a tube buffer; it is not an LMO.
+The VFO is a field-effect transistor oscillator (Q941) with a V20 6AU6 amplifier and Q942 2N3393 regulator, fed from the 0A2's +150 V.
 
-- Drift: try several V20 6AU6s (use the least-drifting). Check V20 pins 5/6 at about 149 V with VFO B+ at 150 V (V18 0A2). Suspect Q942 2N3393, which regulates the FET's ~8 V.
-- Original-coil drift: coil 40-810 was superseded by 40-1976 (HW-101-1).
-- Stops at high end: R947 1 kΩ → 470 Ω and a diode from Q941 gate to ground (HW-101-52), or lower T941 output to ~2 V RF (HW-101-77).
-- Tracking: use the **lower** of the two coil-slug peaks (HW-101-45).
-- Remove any RIT mod wired to the buffer tube (field report: it caused one-directional shift).
+| Symptom (VFO chart) | Cause |
+|---|---|
+| Output low | V20 weak; or peak the top core of coil FM at dial 300 |
+| Output high | R221 not soldered at point F; VFO coil core turned to the wrong end (should be ~1¼ in. below the coil end) |
+| No output | Q942 backwards; Q941 wired wrong; C950 lugs touching chassis; output cable shorted; C951 lead not through lug 2 to TP of L941 |
+| Shifter doesn't work | CR941 reversed |
+| Microphonics | 56 pF discs too close; long leads |
 
-## 4.7 Phase 6: First power-up
+**Removing the VFO (p. 154):**
 
-1. HP-23 on a variac. **Dummy load (50 Ω, not a light bulb) on the antenna jack.** Speaker connected.
-2. Raise slowly; watch for heat or smell. Both pilot lamps must light; they balance the filament string.
-3. Log voltages against the manual's voltage chart.
-4. Check receive on every band with the calibrator.
-5. **Set final bias before any transmit** (§4.8 T1).
+1. Pull V19.
+2. Remove the pilot-lamp screw.
+3. Unplug the coax.
+4. Unsolder bias, B+ and filament.
+5. Loosen the Jackson-drive setscrews.
+6. Remove the knob and the 3 and 9 o'clock screws.
+7. Remove the spade-bolt nuts.
+8. Work the VFO up and back.
 
-## 4.8 Phase 7: Alignment
+When reconnecting: white-gray → BIAS, orange → B+, brown → FIL.
 
-Order matters: **receiver first**, because the transmitter shares receiver circuits. Warm up for 30 minutes. Use the plastic tool. **Never adjust the sealed 6.8 MHz trap.** T202 (bandpass) is factory set; touch it only with a sweep setup (HW-101-56).
+Field drift fixes: try several V20s; check Q942; coil 40-810 → 40-1976 (HW-101-1); remove RIT mods wired to the buffer.
+
+## 4.7 Phase 6: Initial test (p. 117)
+
+1. **Earth-ground the chassis and the test gear.**
+2. Set the controls:
+
+   | Control | Setting |
+   |---|---|
+   | FINAL TUNE | 10 o'clock |
+   | LOAD | 4 o'clock |
+   | MODE | LSB |
+   | FUNCTION | PTT |
+   | METER | PLATE |
+   | RF GAIN | Full CW |
+   | AF GAIN | PWR OFF |
+   | Others | Fully CCW |
+   | **BIAS (right side)** | **Fully CCW** |
+
+3. Connect an **8 Ω speaker; never run without a speaker or phones.**
+4. Turn on. The pilot lamps should light, the filaments glow, and the meter read zero. Turn AF GAIN up until noise is heard. If there's no noise, check that the transmitter isn't keyed (PTT, key or TUNE).
+5. Measure:
+
+| Point | Expected |
+|---|---|
+| Bandpass board point 5 | **+275 V** |
+| Audio board point 4 | **−108 V** (bias) |
+
+Then compare against the **Receiver DC Voltage Chart (Fig. 1-20)** and **Transmitter Voltage Chart (Fig. 1-21)**, fold-out from p. 144.
+
+## 4.8 Phase 7: Alignment (pp. 119–125)
+
+**Equipment:**
+
+- 11 MΩ VTVM (a 20 kΩ/V VOM loads the circuits).
+- **50 Ω nonreactive dummy load rated 100 W; never light bulbs.**
+- A receiver for WWV or a broadcast station on a 100 kHz multiple.
+- A scope or SB-610 is recommended.
+
+**Do not transmit until directed** (p. 119).
+
+**Presets (p. 119):**
+
+- CAL XTAL trimmer notch toward the 100 kHz crystal.
+- DRIVER PRESELECTOR at 12 o'clock.
+- MIC/CW fully CCW.
+- LSB, BAND 3.5, dial 200, PTT, RF GAIN full CW, METER on ALC, AF GAIN at 9 o'clock.
 
 **Receiver**
 
-1. **S-meter zero:** 80 m, RF gain fully CW, METER on ALC. Adjust ZERO ADJ (IF board, behind the FREQ CONTROL switch).
-2. **Heterodyne oscillator coils:** use an 11 MΩ meter (an analog meter must be ≥ 20 kΩ/V) at test point TP near V19 on the bandpass board.
-   - Target: as high as possible between −0.5 and −2.0 V, **never above −2.0 V**.
-   - Approach the setting from the slow-changing side of the peak.
-   - Five coils are adjusted from the bottom (21, 7, 29.5, 29.0, 28) and three from the top (3.5, 14, 28.5). If TP reads 0 V, measure at the other end of the 100 kΩ resistor.
-3. **IF:** calibrator at dial 400. Peak T201, T102 (top and bottom slugs), then T103. Repeat. WB8JKR peaks T102 for maximum transmit drive if there are two peaks.
-4. **VFO:**
-   - Set the dial with the Zero-Set button and slip clutch.
-   - Dial 500 = 5000 kHz (VFO coil); dial 0 = 5500 kHz (side trimmers). Iterate.
-   - The dial reads inverted: 5.000 MHz at 500.
-   - Without a counter, verify against a known signal; the error can reach 100 kHz.
-5. **Driver grid and plate coils:** in the order 3.5 (3.7) → 29 (29.2) → 21 (21.2) → 14 (14.2) → 7 (7.2). Set the driver preselector to match each band and peak the S-meter. On 40 m, the preselector may need to sit near 1 o'clock (HW-101-47).
+1. **S-meter:** with the antenna off and RF GAIN full CW, set ZERO ADJ (right side) for zero.
+2. **Heterodyne oscillator (p. 120):**
+   - VTVM (−DC) to **TP on the bandpass board near V19**. If it reads 0, use the adjacent lead of the 100 kΩ resistor.
+   - "−.82 V or higher is normal."
+   - On every band, adjust that band's heterodyne coil for **about −0.5 to −2 V**. Adjust in the direction that gives the **slower** change.
+   - Coils 3.5, 14 and 28.5 are adjusted from the top of the RF driver board; the rest from the bottom (positions are marked on the shield cover).
+   - Latta adds: don't exceed −2.0 V.
+3. **VFO trimmers:** turn both trimmer screws (through the VFO chassis) CW until just snug, then ¼ turn CCW.
+4. **CAL check:** FUNCTION CAL, BAND 3.5, rock the dial around 400. The signal should stop on VOX and peak with the preselector. Reset the preselector to 12 o'clock.
+5. **IF:**
+   - Peak **T201** for maximum volume.
+   - Peak **T102** top and bottom slugs.
+   - Turn **T103** slug *up* (CCW) **14 turns**, then peak (no more than ~1 turn).
+   - Retouch all three.
+   - Don't turn T201/T103 cores more than two turns; **never touch the sealed 6.8 MHz trap.**
+6. **VFO (p. 121):**
+   - Warm up ≥ **30 min**.
+   - Find CAL near 4000 kHz (500), turn the dial to its CCW stop, and slip the circular dial so the "Stop" end meets the hairline (Detail 8-9A).
+   - Walk the 4000 kHz CAL signal onto **500** with the **VFO COIL**.
+   - Set the 3500 kHz CAL signal onto **0** with **both VFO trimmers**.
+   - Repeat until both coincide. (VFO is 5000 kHz at "500", 5500 kHz at "0".)
+7. **Driver grid and plate coils (pp. 121–122)**, in this order, peaking the S-meter:
 
-**Receiver benchmark (W5RKL):** calibrator about **S9+20 at 3700 kHz**, falling to about **S6 at 29.2 MHz**.
+   | Band | Preselector | Coils |
+   |---|---|---|
+   | 3.5 | 12 o'clock | 3.5 |
+   | 29.0 | 29.2 position | 29 |
+   | 21.0 | 21.2 | 21 (the VFO harmonic sits near CAL; identify CAL with CAL/VOX) |
+   | 14.0 | 14.2 | 14 |
+   | 7.0 | — | 7 |
 
-**Transmitter** (50 Ω dummy load; short key-downs; let the finals cool ≥ 30–60 s between tries)
+**Receiver benchmark (manual p. 122):** **at least S9+20 dB at 3700 kHz, decreasing to S3 at 29.2 MHz** on the calibrator.
 
-1. **Final bias:**
-   - Set up: PTT, LSB, no drive (MIC/CW level at zero), METER on PLATE.
-   - Adjust BIAS for the manual's resting plate current: the **50 mA mark/dot** (W5RKL); Latta reads it as "3" on his scale.
-   - **Confirm the procedure in the manual.** Wrong bias for more than a few seconds can ruin the finals.
-2. **Carrier isolation amp T1:**
-   - Use the REL PWR meter in TUNE, keeping output ≤ 6.
-   - Peak the preselector and FINAL.
-   - Reduce MIC/CW level to ≤ 3 and peak T1. Repeat once.
-3. **Preliminary neutralization (3.5 MHz):** peak RF output and plate-current dip must fall at the **same FINAL setting**. Adjust the cage-front neutralizing capacitor 1/16–1/8 turn at a time. If the two points move apart, go the other way.
-4. **Carrier null (3700 kHz):**
-   - Set up: LSB, PTT, MIC/CW fully CCW.
-   - Null with the CARRIER NULL control and capacitor, then repeat on USB.
-   - Aim for equal residual carrier on both sidebands, about ¼ V on the REL PWR meter or less. Spec is −45 dB.
-   - If C14 bottoms out, see HW-101-28. If suppression is poor, change R9 from 1 kΩ to 390 Ω (HW-101-38).
-5. **Final heterodyne-coil touch-up:** TUNE, REL PWR 3–9. Peak the 3.5 coil, then each band's coil.
-6. **Driver neutralization (21.2 MHz):** set the white wire to the 6CL6 plate (hole W) so the preselector peaks smoothly. Shorten it to about 1/8 in. if final neutralization is hard (K4JPN). On 15 m, bend it flat if the driver oscillates (HW-101-79).
-7. **Final neutralization touch-up at 14.2 MHz.** It is more sensitive there.
-8. **Calibrator:** zero-beat a harmonic against WWV at 10 or 15 MHz with the CAL CRYSTAL trimmer, during an unmodulated period.
-9. **VFO shift:** dial 200 on 3.5 MHz, CAL on. Zero-beat in USB, switch to LSB without touching the dial, and adjust SHIFT ADJUST on the VFO. Iterate.
-10. **Loading:** dip with FINAL, load to about **40** on the HW-101 plate scale (≈ 225–250 mA). Re-neutralize if maximum REL PWR and the dip don't coincide.
+**Transmitter** (pp. 122–124; **coil cover must be on**)
 
-Changing finals, tube brands or layout means re-neutralizing.
+1. **Neutralizing capacitor preset** (new build): through the hole in the RF cage front, turn CW until resistance is felt, then **one full turn CCW**.
+2. **Bias:**
+   - Set up: preselector 12 o'clock, MIC/CW CCW, FINAL at 10 o'clock, LOAD at 4 o'clock, LSB, 3.5, dial 200, PTT, METER on PLATE.
+   - **Press PTT and set BIAS so the needle sits on the ▼ mark (above the "3") = 50 mA resting cathode current.** Press PTT only a few seconds at a time until set.
+   - Check that REL PWR reads 0.
+3. **T1:**
+   - TUNE, raise MIC/CW for an indication, peak the preselector and FINAL.
+   - Set MIC/CW for **≤ S3**.
+   - Turn T1's slug **up 14 turns**, then peak (≤ ~1 turn).
+   - Reduce MIC/CW and re-peak T1.
+4. **Preliminary neutralization (3.5 MHz):**
+   - In TUNE, find the FINAL setting for minimum plate current and the one for maximum REL PWR.
+   - Adjust the neutralizing capacitor a small amount at a time until they **coincide**.
+   - Run full power only briefly; **cool ≥ 30 s** in LSB between tries.
+5. **Carrier null:**
+   - MIC/CW fully CCW. In LSB with PTT, null with the CARRIER NULL **control**, then the CARRIER NULL **capacitor**.
+   - Repeat in USB, and repeat both until the residual is about equal on LSB and USB.
+   - With an 11 MΩ VTVM and RF probe at the ANTENNA jack center pin, aim for **¼ V or less**.
+6. **Heterodyne coils for drive:**
+   - TUNE, REL PWR.
+   - Peak the preselector, FINAL and LOAD; set MIC/CW for **3–9**.
+   - Peak HET OSC coil 3.5 on the **slow side**, then each band's coil.
+7. **Driver neutralization (21.2 MHz):** peak, then rock the preselector. If peaking is ragged, reposition or bend the **white insulated driver-neutralizing wire in hole W** of the RF driver board.
+8. **Final neutralization (14.2 MHz):** peak, then adjust until maximum REL PWR and minimum plate current coincide.
+9. **ALC zero:**
+   - Re-zero the ALC position while receiving at 29.5, then check zero on every band.
+   - If a band isn't zero, retouch that band's heterodyne coil.
+   - The meter resting below zero on transmit is normal.
+10. **Crystal calibrator (p. 124):**
+    - Antenna wire to an external receiver tuned to WWV.
+    - FUNCTION CAL, AF GAIN CCW. Adjust the **CAL XTAL trimmer** (bandpass board) for zero beat.
+    - **Use 15 MHz WWV:** a 20 Hz error at 100 kHz becomes 740 Hz at 3.7 MHz.
+11. **VFO shifter (p. 125):** 3.5, dial 200, CAL. Zero beat in **USB**, switch to **LSB** without moving the dial, and adjust **SHIFT ADJUST** on the VFO. Recheck USB.
+12. **Dial calibration (p. 125):** zero beat the calibrator at 3.5 MHz / dial 0. Hold **ZERO SET** and turn the knob to bring 0 under the index. Verify on a known station (e.g. CHU 7335 kHz).
 
-## 4.9 Phase 8: Optional improvements (reversible)
+## 4.9 Phase 8: Operating tune-up (pp. 140–141): every session, and after any ±20 kHz move
+
+1. Set the band and frequency. METER on PLATE, MIC/CW fully CCW, 50–75 Ω load.
+2. **TUNE:** the meter should read **50 mA (▼)**. If it doesn't, redo the bias.
+3. METER on REL PWR, LOAD at 4 o'clock, FINAL to the band's mark (Fig. 1-19).
+4. Raise MIC/CW slightly. Peak the PRESELECTOR, FINAL and LOAD.
+5. Raise MIC/CW until the output stops increasing, then re-peak.
+6. METER on PLATE: about **"40" on the scale = 250 mA**. (Scale: 3 = 50, 6 = 100, 9 = 150, 20 = 200, 40 = 250, 60 = 300 mA.)
+7. **Check:** maximum REL PWR must fall at the same FINAL setting as the plate dip. **If it doesn't, do not operate; re-neutralize.**
+8. Return MIC/CW to CCW.
+
+**Limits:**
+
+- **Full output no longer than 30 s at a time; cool ≥ 1 min.**
+- SSB (PTT, METER on ALC): set MIC/CW so voice peaks reach about **S3, keeping below S6** on the ALC scale.
+
+## 4.10 Phase 9: Optional improvements (reversible)
 
 | Mod | Change (source) |
 |---|---|
 | Stable meter zero on TX | 10 MΩ from meter-zero pot pin 3 to T102 pin 2 (WB8JKR) |
-| Carrier crystals on frequency | Series/parallel trim caps; LSB 3393.5, USB 3396.3, CW 3395.4 kHz (WB8JKR) |
+| Carrier crystals on frequency | Series/parallel trim caps (WB8JKR) |
 | More BFO injection | C17 12 → 100 pF; R6/R7 → 27 kΩ (WB8JKR) |
 | Less raspy audio | C119 500 pF → .001 µF; C306 → .01 µF (WB8JKR) |
-| Better mic low end | C11 .001 → .01 µF (WB8JKR) |
-| Faster CW relay pull-in | R328 470 kΩ → 1 kΩ (WB8JKR) |
-| Sidetone bleed in receive | .001 µF RL1 pin 1 to ground; R326 → 2.2 MΩ (WB8JKR) or 3.3 MΩ (HW-101-16) |
-| Sidetone volume control | HW-101-70 |
-| Birdies | .01 µF from the common filament point to ground (bandpass board) |
-| Low-Z headphones | WB8JKR rewiring; .01 µF across phone jack pins 2–3 (K4JPN) |
-| RIT | QST Mar 1969 (SB-101 design) |
-| Avoid | Replacing the RCA antenna jack with SO-239. Use an adapter (Latta). |
+| Mic low end | C11 .001 → .01 µF (WB8JKR) |
+| Faster CW relays | R328 470 kΩ → 1 kΩ (WB8JKR) |
+| Sidetone | R326 → 2.2 or 3.3 MΩ; volume control per HW-101-70 |
+| Birdies | .01 µF from the common filament point to ground |
+| Avoid | Replacing the RCA antenna jack with SO-239; use an adapter (Latta) |
 
-# 5. Bulletin quick-reference (symptom → bulletin)
+# 5. Symptom → cause quick reference (manual chart pp. 146–155 + bulletins)
 
-| Symptom | Bulletins |
+| Symptom | Manual chart / bulletins |
 |---|---|
-| S-meter drift / won't zero | -10, -20, -34, -67; R106 |
-| AGC poor, fast S-meter decay | -24, -55 |
-| VFO drift, warble, erratic, stops high | -1, -2, -19, -27, -42, -45, -52, -77, -80 |
-| Relays hang / chatter / chirp | -23, -31, -32, -41, -57 |
-| Low TX output or RX sensitivity | -11, -43, -46, -53, -56 |
-| Carrier suppression / null | -3, -28, -38 |
-| Finals / neutralizing / RF choke heat | -5, -18, -39, -49, -59, -61 |
-| Calibrator spurs | -25 |
-| R940 / R701 overheating | -37, -50, -75 |
-| Sidetone | -16, -65, -70, -74 |
+| Very low USB/LSB output | T1 not aligned; low mic level; V1 (p. 152 #33) |
+| No VFO injection at V5/V12 | V20; power (p. 152 #34) |
+| VFO won't shift with mode | Mode wafer 1F; R306/R307 (p. 152 #35); CR941 (p. 155) |
+| No heterodyne injection at V6/V11 | Crystal Y501–Y508, coax, C208/C223/C604, V19, L601–L608, no 150 V, reversed wafer rotors (p. 152 #36) |
+| Relays won't energize (TUNE / VOX) | V12B, RL1/RL2, wafer 2F; VOX SENS, V17A, D201, D202, anti-trip (p. 152 #37–38) |
+| Relays stay energized | PTT/key closed, **C213**, **V12**, **B+ at 250 V not 300 V** (p. 153 #39); -23 |
+| Transmitter unstable | Neutralization, **board lockwashers**, L801–L805, coil cover, tube-shield clips, V8/V9 hardware, lead lengths (p. 153 #40); -9 |
+| Slow receive recovery | **D101** (p. 153 #41); RL2 carbon (-32) |
+| Output falls off | Heat, bias, load, **gassy 6146s, weak V7** (p. 153 #42) |
+| Dial zero varies band to band | Calibrator not exactly 100 kHz; heterodyne coils; VFO alignment (p. 153 #43) |
+| Low output, all modes | IF-board wire not in hole 3 on the bandpass board (p. 153 #44) |
+| S-meter drift / won't zero | R106, R107 (-10), V3 leakage (-34), #47 lamps (-20), -67 |
+| Poor AGC | 6HS6 leakage (-24); R117 (-55) |
+| Carrier suppression | -3, -28, -38 |
 
 # 6. Operation notes
 
-- Make every transmit adjustment into a **50 Ω dummy load**.
-- Keep the HP-23 switch on **300 V**.
-- Never transmit without a load; the L904 wiring and finals suffer.
-- Tune up at reduced drive and keep key-down periods short.
-- Use the calibrator and zero-set before netting.
+- 50–75 Ω nonreactive load always (manual p. 139). HP-23 on **300 V**.
+- Earth-ground the chassis.
+- Follow the 10-step tune-up every time; check that peak and dip coincide.
+- Leave ventilation clear; don't stack equipment on the rig (p. 131).
 
 # 7. Tips and tricks
 
-- Label tubes by socket. Tube brand matters in this rig (6AU6, 6HS6, 6EA8).
-- Photograph wafer and rotor orientation before touching the bandswitch.
-- Grid-dip the heterodyne coils to find dead band crystals quickly (crystal = band + 8.895 MHz).
-- Spare tubes worth keeping: 6HS6 ×2, 6EA8, 6AU6 (non-El-Menco), 12AT7, a matched 6146 pair.
-- Keep #47 lamps, silicone belts and a 100 kHz crystal on hand.
+- Label tubes by socket; tube brand matters (6AU6, 6HS6, 6EA8).
+- Photograph wafer and rotor orientation before touching switches.
+- Grid-dip heterodyne coils to find a dead crystal fast.
+- Spares worth keeping: 6HS6 ×2, 6EA8, non-El-Menco 6AU6s, 6CL6, 12AT7, a matched 6146 pair, #47 lamps, silicone belts.
 
 # 8. Maintenance schedule
 
 | Interval | Task |
 |---|---|
-| Each session | 30 min warm-up; calibrator zero-set. |
-| 6 months | Exercise switches and pots; check S-meter zero. |
-| Yearly | Bias check; carrier null check; receive benchmark; clean relay contacts if chirp or slow recovery appears. |
-| 2–3 years | Neutralization check (peak and dip coincide); retighten board and driver screws; DeoxIT switches. |
-| 5 years | Test all tubes (6HS6 and finals first); inspect belts; HP-23 voltage check and capacitor ESR/leakage. |
-| ~15–20 years | Re-check electrolytics in both units. |
+| Each session | 45 min warm-up for the stability spec (30 min minimum); calibrator zero-set; 10-step tune-up. |
+| 6 months | Exercise switches and pots; S-meter zero. |
+| Yearly | Bias (50 mA ▼); carrier null; receive benchmark (≥ S9+20 at 3.7 MHz); relay cleaning if needed. |
+| 2–3 years | Neutralization check at 3.5 and 14.2; retighten board hardware and lockwashers; DeoxIT. |
+| 5 years | Tube test (6HS6, 6146, 6CL6 first); belts; HP-23 check. |
+| ~15–20 years | Re-check electrolytics. |
 
 # 9. Parts sources
 
-- Mouser / Digi-Key: electrolytics, 2 W metal-film and wirewound resistors, NPO caps, 1N4007.
-- HP-23 recap and rebuild boards (HP-23RL and similar).
-- Silicone preselector belts (50/56/3 mm) from Heathkit vendors and eBay.
-- Heathkit-Radios (groups.io): crystals, 6HS6s, donor boards.
+- Mouser / Digi-Key: electrolytics, 2 W metal film, NPO caps, 1N4007, 2 kV discs.
+- HP-23 rebuild kits (HP-23RL and similar); silicone belts; Heathkit-Radios (groups.io) for crystals, 6HS6s and boards.
 
 # 10. Sources
 
-- Heath, *HW-101 Assembly & Operation Manual*; *HW-101 Service Bulletins* 1971–79 (Latta site, frostburg.edu).
-- Heath list (puck.nether.net), Jul 1997: transcribed bulletins HW-101-1 to -55.
-- W5RKL, *Heathkit HW-101 and SB-10x Restoration and Troubleshooting*.
-- Latta, Frostburg State: HW-101 restoration, alignment, modifications, HP-23 restoration and schematic pages.
-- WB8JKR, *Optimizing the HW-101, SB100-102 Transceivers*; K4JPN, *Improve Your HW-101*; KM5Z refurb summary (pestingers.net).
-- Heath list threads: "Problems with HW-101 — a possible solution" (Dec 2020, reversed wafers); "Drifting HW-101" (Jun 2007); "S meter drift" (Feb 2003).
+- Heath, *Heathkit Manual for the SSB Transceiver Model HW-101*, 595-1277-18 (©1970).
+- Heath service bulletins HW-101-1 … -85 (Latta site; Heath list, Jul 1997).
+- W5RKL, *HW-101 and SB-10x Restoration and Troubleshooting*.
+- Latta, Frostburg State HW-101 pages (restoration, alignment, modifications, HP-23).
+- WB8JKR, *Optimizing the HW-101, SB100-102*; K4JPN, *Improve Your HW-101*; KM5Z refurb summary (pestingers.net).
+- Heath list threads: "Problems with HW-101 — a possible solution" (Dec 2020); "Drifting HW-101" (Jun 2007); "S meter drift" (Feb 2003).
 
-# 11. Pending manual cross-check
+# 11. Rev. 2 change log (manual review)
 
-As with the SB-301, I'll check this plan against the original manual. Items to verify:
-
-- V-number assignments (§2.2).
-- The full electrolytic list and voltage ratings (C2/C12/C212/C304/C906 and any others).
-- The exact bias procedure and resting-current target.
-- The resistance and voltage charts.
-- Diode designators and types.
-- The manual's alignment wording and troubleshooting chart.
+| Item | Rev. 1 | Rev. 2 (per manual) |
+|---|---|---|
+| Power requirements | HP-23 outputs only | Spec: **700–850 V @ 250 mA, 300 V @ 150 mA, −115 V @ 10 mA, 12 V @ 4.76 A** (p. 159) |
+| HP-23 bias | Not addressed | HP-23 BIAS control inoperative with the HW-101; set by the transceiver's BIAS. HP-13 bias fully CW (pp. 113–114). |
+| Sensitivity, output, stability | Not stated / 100 W | < 0.3 µV; 100 W on 80–15, 80 W on 10; < 100 Hz/hr after **45 min** (pp. 157–158) |
+| 40 m coverage | 7.0–7.5 implied | **7.0–7.3 MHz** |
+| V-number table | "Verify" | Confirmed from schematic, block diagram and troubleshooting chart |
+| Diodes | Partial, CR201/CR901 only | Full table; CR1–4 are FH-1100 in this printing; D202 15 V zener; D907 not in the manual's table |
+| Electrolytics | Ratings guessed (15 V / 350 V) | Five confirmed with p/n; manual prints no voltages; C906 is the **−130 V bias filter** |
+| R106 / R107 | 22 kΩ 1 W / 100 kΩ ½ W | 22 kΩ 1 W / **100 kΩ 1 W already** in this printing |
+| Power resistors | — | Added R302 3.3 kΩ 1 W (bias), **R304 1 kΩ 7 W / R305 2.5 kΩ 7 W** (0A2 dropping) |
+| Bias | "50 mA dot" vs. Latta "3" (conflict) | **▼ mark above "3" = 50 mA resting cathode current**, set in PTT; checked in TUNE before every tune-up (pp. 122, 140) |
+| Loading | "~40" | "40" = **250 mA**; full meter scale table (p. 139) |
+| Initial test | Generic | Manual Initial Test settings and **+275 V / −108 V** checkpoints; earth-ground warning (p. 117) |
+| Alignment | Field summary | Full manual sequence: T103 and T1 "up 14 turns then peak", VFO trimmer preset, neutralizing preset one turn CCW, ALC re-zero at 29.5, calibrator at 15 MHz WWV |
+| Receive benchmark | S9+20 → S6 (W5RKL) | Manual: **≥ S9+20 at 3700 kHz → S3 at 29.2 MHz** |
+| Troubleshooting | Bulletins only | Added manual chart items (D101, C213, V7, R221, CR941, rotors 180°, 250 V B+) and VFO chart |
+| Late-printing features | — | Steel comb brackets, new detents, #47 lamps, FH-1100 modulator diodes already supplied |
