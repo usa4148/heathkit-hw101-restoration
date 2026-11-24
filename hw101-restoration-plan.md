@@ -5,6 +5,10 @@ date: "October 2026"
 geometry: margin=0.9in
 fontsize: 10pt
 colorlinks: true
+linkcolor: black
+urlcolor: black
+citecolor: black
+toccolor: black
 toc: true
 ---
 
